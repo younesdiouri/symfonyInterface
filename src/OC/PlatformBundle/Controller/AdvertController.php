@@ -6,33 +6,41 @@ namespace OC\PlatformBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AdvertController extends Controller
 {
-    // La route fait appel à OCPlatformBundle:Advert:view,
-    // on doit donc définir la méthode viewAction.
-    // On donne à cette méthode l'argument $id, pour
-    // correspondre au paramètre {id} de la route
-    public function viewAction($id)
+    public  function indexAction($page)
     {
-        // $id vaut 5 si l'on a appelé l'URL /platform/advert/5
+        if($page < 1) {
+            throw new NotFoundHttpException('Page "'.$page.'" inexistante.');
+        }
 
-        // Ici, on récupèrera depuis la base de données
-        // l'annonce correspondant à l'id $id.
-        // Puis on passera l'annonce à la vue pour
-        // qu'elle puisse l'afficher
-
-        return new Response("Affichage de l'annonce d'id : ".$id);
+        return $this->render('OCPlatformBundle:Advert:index.html.twig');
     }
 
-    // ... et la méthode indexAction que nous avons déjà créée
-
-    // On récupère tous les paramètres en arguments de la méthode
-    public function viewSlugAction($slug, $year, $format)
+    public function viewAction($id)
     {
-        return new Response(
-            "<body>On pourrait afficher l'annonce correspondant au
-            slug '".$slug."', créée en ".$year." et au format ".$format.".</body>"
-        );
+        return $this->render('OCPlatformBundle:Advert:view.html.twig', array(
+            'id' => $id
+        ));
+    }
+
+    public function addAction(Request $request)
+    {
+        if($request->isMethod($_POST)){
+            // il a soumis le formulaire et est soumis à l'annonce temporaire
+            $request->getSession()->getFlashBag()->add('notice', 'Annonce bien enregistrée');
+            return $this->redirectToRoute('oc_platform_view', array('id' => 5));
+        }
+        return $this->render('OCPlatformBundle:Advert:edit.html.twig');
+    }
+
+    public function deleteAction($id)
+    {
+        return $this->render('OCPlatformBundle:Advert:delete.html.twig');
     }
 }
