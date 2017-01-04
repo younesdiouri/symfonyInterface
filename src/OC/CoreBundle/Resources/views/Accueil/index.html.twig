@@ -1,0 +1,11 @@
+{% extends "OCCoreBundle::layout.html.twig" %}
+
+
+{% block body %}
+    {# Dans le bloc body on affiche le message flash après la redirection depuis contact #}
+   {% for flashMessage in app.session.flashbag.get('error') %}
+
+      {# Alert info #}
+      <div class="alert alert-info"> {{ flashMessage }}</div>
+   {% endfor %}
+{% endblock %}

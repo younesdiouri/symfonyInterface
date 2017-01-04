@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{% block title %}OC Plateforme{% endblock %}</title>
+    <title>{% block title %}Accueil{% endblock %}</title>
 
     {% block stylesheets %}
         {# On charge le CSS de bootstrap depuis le site directement #}
@@ -17,8 +17,12 @@
 <body>
 <div class="container">
     <div id="header" class="jumbotron">
-        <h1>Ma plateforme d'annonces</h1>
-        <p>
+        <h1>Bienvenue sur notre site !</h1>
+    </div>
+
+    <div class="row">
+       {#<h1>Ma plateforme d'annonces</h1>
+       <p>
             Ce projet est propulsé par Symfony,
             et construit grâce au MOOC OpenClassrooms et SensioLabs.
         </p>
@@ -37,7 +41,9 @@
                 <li><a href="{{ path('oc_platform_add') }}">Ajouter une annonce</a></li>
             </ul>
 
-            <h4>Dernières annonces</h4>
+       #}
+        <div id="menu" class="col-md-3">
+        <h4>Dernières annonces</h4>
             {{ render(controller("OCPlatformBundle:Advert:menu", {'limit': 3})) }}
         </div>
         <div id="content" class="col-md-9">

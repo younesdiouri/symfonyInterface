@@ -10,9 +10,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use OC\PlatformBundle\Entity\Advert;
 
 class AdvertController extends Controller
 {
+    /**
+     * @param $page
+     * @return Response
+     */
     public function indexAction($page)
     {
         // ...
@@ -38,7 +43,7 @@ class AdvertController extends Controller
                 'content' => 'Nous proposons un poste pour webdesigner. Blabla…',
                 'date'    => new \Datetime())
         );
-
+        $mailer = $this->get('mailer');
         // Et modifiez le 2nd argument pour injecter notre liste
         return $this->render('OCPlatformBundle:Advert:index.html.twig', array(
             'listAdverts' => $listAdverts
@@ -62,13 +67,40 @@ class AdvertController extends Controller
 
     public function addAction(Request $request)
     {
-        if($request->isMethod($_POST)){
-            // il a soumis le formulaire et est soumis à l'annonce temporaire
-            $request->getSession()->getFlashBag()->add('notice', 'Annonce bien enregistrée');
-            return $this->redirectToRoute('oc_platform_view', array('id' => 5));
+        $advert= new Advert();
+        $advert->setTitle('Recherche d\'un développeur symfony.');
+        $advert->setAuthor('Alexandre');
+        $advert->setContent('Nous recherchons un développeur sur Lyon. Blablabla');
+
+        //ON récupère l'entity manager maintenant qu'on a défini nos attributs e l'objet
+
+        $em = $this->getDoctrine()->getManager();
+
+        //on persist l'entité
+        $em->persist($advert);
+
+        //On flush tout ce qui a été persisté avant
+        $em->flush();
+
+        // Reste de la méthode qu'on avait déjà écrit
+        if ($request->isMethod('POST')) {
+            $request->getSession()->getFlashBag()->add('notice', 'Annonce bien enregistrée.');
+
+            // Puis on redirige vers la page de visualisation de cettte annonce
+            return $this->redirectToRoute('oc_platform_view', array('id' => $advert->getId()));
         }
-        return $this->render('OCPlatformBundle:Advert:edit.html.twig');
-    }
+
+        // Si on n'est pas en POST, alors on affiche le formulaire
+        return $this->render('OCPlatformBundle:Advert:add.html.twig');
+     /*
+        $antispam=$this->container->get('oc_platform.antispam');
+        $text="...";
+        if($antispam->isSpam($text)) {
+            throw new \Exception('Votre message a été détecté comme spam ! ');
+       return $this->render('OCPlatformBundle:Advert:edit.html.twig');
+        }*/
+
+    } 
 
     public function deleteAction($id)
     {

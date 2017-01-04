@@ -7,3 +7,9 @@ services:
 #    service_name:
 #        class: AppBundle\Directory\ClassName
 #        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
+  oc_platform.antispam:
+    class: OC\PlatformBundle\Antispam\OCAntispam
+    arguments:
+      - "@mailer"
+      - %locale%
+      - 50
