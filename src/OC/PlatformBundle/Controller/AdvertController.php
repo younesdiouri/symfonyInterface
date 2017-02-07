@@ -4,6 +4,8 @@
 
 namespace OC\PlatformBundle\Controller;
 
+use OC\PlatformBundle\Entity\Application;
+use OC\PlatformBundle\Entity\Image;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -52,16 +54,24 @@ class AdvertController extends Controller
 
     public function viewAction($id)
     {
-        $advert = array(
-            'title'   => 'Recherche développpeur Symfony2',
-            'id'      => $id,
-            'author'  => 'Alexandre',
-            'content' => 'Nous recherchons un développeur Symfony2 débutant sur Lyon. Blabla…',
-            'date'    => new \Datetime()
-        );
+        $em = $this->getDoctrine()->getManager();
+
+        // On récupère l'annonce $id
+        $advert = $em->getRepository('OCPlatformBundle:Advert')->find($id);
+
+        if (null === $advert) {
+            throw new NotFoundHttpException("L'annonce d'id ".$id." n'existe pas.");
+        }
+
+        // On récupère la liste des candidatures de cette annonce
+        $listApplications = $em
+            ->getRepository('OCPlatformBundle:Application')
+            ->findBy(array('advert' => $advert))
+        ;
 
         return $this->render('OCPlatformBundle:Advert:view.html.twig', array(
-            'advert' => $advert
+            'advert'           => $advert,
+            'listApplications' => $listApplications
         ));
     }
 
@@ -73,11 +83,35 @@ class AdvertController extends Controller
         $advert->setContent('Nous recherchons un développeur sur Lyon. Blablabla');
 
         //ON récupère l'entity manager maintenant qu'on a défini nos attributs e l'objet
+        // Création d'une première candidature
+        $application1 = new Application();
+        $application1->setAuthor('Marine');
+        $application1->setContent("J'ai toutes les qualités requises.");
 
+        // Création d'une deuxième candidature par exemple
+        $application2 = new Application();
+        $application2->setAuthor('Pierre');
+        $application2->setContent("Je suis très motivé.");
+
+        // On lie les candidatures à l'annonce
+        $application1->setAdvert($advert);
+        $application2->setAdvert($advert);
+
+        //création de l'entité image
+        $image = new Image();
+        $image->setUrl('http://sdz-upload.s3.amazonaws.com/prod/upload/job-de-reve.jpg');
+        $image->setAlt('Job de rêve');
+
+        //on lie l'image à l'annonce
+        $advert->setImage($image);
+
+        //on récupère l'entityManager
         $em = $this->getDoctrine()->getManager();
 
-        //on persist l'entité
+        //on persist l'entité (grace au cascade persist on n'a pas a le faire pour image aussi)
         $em->persist($advert);
+        $em->persist($application1);
+        $em->persist($application2);
 
         //On flush tout ce qui a été persisté avant
         $em->flush();
@@ -87,11 +121,11 @@ class AdvertController extends Controller
             $request->getSession()->getFlashBag()->add('notice', 'Annonce bien enregistrée.');
 
             // Puis on redirige vers la page de visualisation de cettte annonce
-            return $this->redirectToRoute('oc_platform_view', array('id' => $advert->getId()));
+            return $this->redirectToRoute('oc_platform_view', array('advert'=> $advert));
         }
 
         // Si on n'est pas en POST, alors on affiche le formulaire
-        return $this->render('OCPlatformBundle:Advert:add.html.twig');
+        return $this->render('OCPlatformBundle:Advert:add.html.twig', array('advert'=> $advert));
      /*
         $antispam=$this->container->get('oc_platform.antispam');
         $text="...";
@@ -100,7 +134,7 @@ class AdvertController extends Controller
        return $this->render('OCPlatformBundle:Advert:edit.html.twig');
         }*/
 
-    } 
+    }
 
     public function deleteAction($id)
     {
@@ -137,5 +171,26 @@ class AdvertController extends Controller
         return $this->render('OCPlatformBundle:Advert:edit.html.twig', array(
             'advert' => $advert
         ));
+    }
+    // Dans un contrôleur, celui que vous voulez
+
+    public function editImageAction($advertId)
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        // On récupère l'annonce
+        $advert = $em->getRepository('OCPlatformBundle:Advert')->find($advertId);
+
+        // On modifie l'URL de l'image par exemple
+        $advert->getImage()->setUrl('test.png');
+
+        // On n'a pas besoin de persister l'annonce ni l'image.
+        // Rappelez-vous, ces entités sont automatiquement persistées car
+        // on les a récupérées depuis Doctrine lui-même
+
+        // On déclenche la modification
+        $em->flush();
+
+        return new Response('OK');
     }
 }

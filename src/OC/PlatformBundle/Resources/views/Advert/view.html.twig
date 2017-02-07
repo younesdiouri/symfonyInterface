@@ -5,15 +5,20 @@
 {% block title %}
     Lecture d'une annonce - {{ parent() }}
 {% endblock %}
-
 {% block ocplatform_body %}
 
-    <h2>{{ advert.title }}</h2>
-    <i>Par {{ advert.author }}, le {{ advert.date|date('d/m/Y') }}</i>
 
-    <div class="well">
-        {{ advert.content }}
+    <div class="col-md-3">
+        <h2>{{ advert.title }}</h2>
+        <i>Par {{ advert.author }}, le {{ advert.date|date('d/m/Y') }}</i>
+
+        <div class="well">
+            {{ advert.content }}
+        </div>
+
     </div>
+
+
 
     <p>
         <a href="{{ path('oc_platform_home') }}" class="btn btn-default">
@@ -29,5 +34,21 @@
             Supprimer l'annonce
         </a>
     </p>
+    <div class="col-md-3">
+        {% if advert.image is not null %}
+            <img class="img-rounded img-responsive" style="{position : relative;}" src="{{ advert.image.url }}" alt="{{ advert.image.alt }}">
+        {% endif %}
+    </div>
+    {% if not advert.categories.empty %}
+        <p>
+            Cette annonce est parue dans les catégories suivantes :
+            {% for category in advert.categories %}
+                {{ category.name }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+    {% endif %}
 
+    {% for application in listApplications %}
+        {{ application.author }}
+    {% endfor %}
 {% endblock %}
