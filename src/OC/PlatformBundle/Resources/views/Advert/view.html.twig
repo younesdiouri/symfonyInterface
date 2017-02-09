@@ -5,50 +5,57 @@
 {% block title %}
     Lecture d'une annonce - {{ parent() }}
 {% endblock %}
+
 {% block ocplatform_body %}
 
-
-    <div class="col-md-3">
-        <h2>{{ advert.title }}</h2>
-        <i>Par {{ advert.author }}, le {{ advert.date|date('d/m/Y') }}</i>
-
-        <div class="well">
-            {{ advert.content }}
-        </div>
-
-    </div>
-
-
-
-    <p>
-        <a href="{{ path('oc_platform_home') }}" class="btn btn-default">
-            <i class="glyphicon glyphicon-chevron-left"></i>
-            Retour à la liste
-        </a>
-        <a href="{{ path('oc_platform_edit', {'id': advert.id}) }}" class="btn btn-default">
-            <i class="glyphicon glyphicon-edit"></i>
-            Modifier l'annonce
-        </a>
-        <a href="{{ path('oc_platform_delete', {'id': advert.id}) }}" class="btn btn-danger">
-            <i class="glyphicon glyphicon-trash"></i>
-            Supprimer l'annonce
-        </a>
-    </p>
-    <div class="col-md-3">
+    <div style="float: left; margin-right: 1em;">
+        {# On vérifie qu'une image soit bien associée à l'article #}
         {% if advert.image is not null %}
-            <img class="img-rounded img-responsive" style="{position : relative;}" src="{{ advert.image.url }}" alt="{{ advert.image.alt }}">
+            <img src="{{ advert.image.url }}" alt="{{ advert.image.alt }}" height="60">
         {% endif %}
     </div>
+
+    <h2>{{ advert.title }}</h2>
+    <i>Par {{ advert.author }}, le {{ advert.date|date('d/m/Y') }}</i>
+
+    <div class="well">
+        {{ advert.content }}
+    </div>
+
     {% if not advert.categories.empty %}
         <p>
-            Cette annonce est parue dans les catégories suivantes :
+            <b> Cette annonce est parue dans les catégories suivantes : </b>
             {% for category in advert.categories %}
+                {# Technique :
+                loop.last qui veut dire que si c'est pas le dernier
+                category.name affiché, on met la virgule
+                #}
+
                 {{ category.name }}{% if not loop.last %}, {% endif %}
             {% endfor %}
         </p>
     {% endif %}
-
+    <b> Les personnes suivantes sont intéressés : </b>
     {% for application in listApplications %}
-        {{ application.author }}
+
+        {{ application.author }}{% if not loop.last %} , {% endif %}
     {% endfor %}
+
+
+
+<p>
+    <a href="{{ path('oc_platform_home') }}" class="btn btn-default">
+        <i class="glyphicon glyphicon-chevron-left"></i>
+        Retour à la liste
+    </a>
+    <a href="{{ path('oc_platform_edit', {'id': advert.id}) }}" class="btn btn-default">
+        <i class="glyphicon glyphicon-edit"></i>
+        Modifier l'annonce
+    </a>
+    <a href="{{ path('oc_platform_delete', {'id': advert.id}) }}" class="btn btn-danger">
+        <i class="glyphicon glyphicon-trash"></i>
+        Supprimer l'annonce
+    </a>
+</p>
+
 {% endblock %}
