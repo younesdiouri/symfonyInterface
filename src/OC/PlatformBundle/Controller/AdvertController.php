@@ -4,6 +4,7 @@
 
 namespace OC\PlatformBundle\Controller;
 
+use OC\PlatformBundle\Entity\AdvertSkill;
 use OC\PlatformBundle\Entity\Application;
 use OC\PlatformBundle\Entity\Image;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -69,20 +70,47 @@ class AdvertController extends Controller
             ->findBy(array('advert' => $advert))
         ;
 
+        $listAdvertSkills = $em
+            ->getRepository('OCPlatformBundle:AdvertSkill')
+            ->findBy(array('advert' => $advert))
+            ;
+
         return $this->render('OCPlatformBundle:Advert:view.html.twig', array(
             'advert'           => $advert,
-            'listApplications' => $listApplications
+            'listApplications' => $listApplications,
+            'listAdvertSkills' => $listAdvertSkills
         ));
     }
 
     public function addAction(Request $request)
     {
+        //On récupère l'entity manager
+        $em = $this->getDoctrine()->getManager();
         $advert= new Advert();
         $advert->setTitle('Recherche d\'un développeur symfony.');
         $advert->setAuthor('Alexandre');
         $advert->setContent('Nous recherchons un développeur sur Lyon. Blablabla');
 
-        //ON récupère l'entity manager maintenant qu'on a défini nos attributs e l'objet
+        //On récupère toutes les compétences possibles
+        $listSkills = $em->getRepository('OCPlatformBundle:Skill')->findAll();
+
+        //Pour chaque compétence :
+        foreach ($listSkills as $skill) {
+            //On crée une nouvelle "relation en 1 annonce et 1 competence "
+            $advertSkill = new AdvertSkill();
+
+            //on la lie à l'annonce qui est toujours la même
+            $advertSkill->setAdvert($advert);
+
+            //On la lie à la compétence qui change dans la boucle foreach
+            $advertSkill->setSkill($skill);
+            //Arbitrairement, on dit que chaque compétence est requise au niveau Expert
+            $advertSkill->setLevel('Expert');
+
+            //et bien sur on persist cette entité de relation, propriétaire des deux autres relations
+            $em->persist($advertSkill);
+        }
+
         // Création d'une première candidature
         $application1 = new Application();
         $application1->setAuthor('Marine');
@@ -105,8 +133,6 @@ class AdvertController extends Controller
         //on lie l'image à l'annonce
         $advert->setImage($image);
 
-        //on récupère l'entityManager
-        $em = $this->getDoctrine()->getManager();
 
         //on persist l'entité (grace au cascade persist on n'a pas a le faire pour image aussi)
         $em->persist($advert);

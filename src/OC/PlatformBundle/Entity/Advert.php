@@ -13,6 +13,11 @@ use Doctrine\ORM\Mapping as ORM;
 class Advert
 {
     /**
+     * @ORM\OneToMany(targetEntity="OC\PlatformBundle\Entity\Application", mappedBy="advert")
+     */
+    private $applications; // Notez le « s », une annonce est liée à plusieurs candidatures
+
+    /**
      * @var int
      *
      * @ORM\Column(name="id", type="integer")
@@ -254,5 +259,46 @@ class Advert
     public function getCategories()
     {
         return $this->categories;
+    }
+
+    /**
+     * Add application
+     *
+     * @param \OC\PlatformBundle\Entity\Application $application
+     *
+     * @return Advert
+     */
+    public function addApplication(\OC\PlatformBundle\Entity\Application $application)
+    {
+        $this->applications[] = $application;
+
+        //On lie l'annonce à la candidature
+        $application->setAdvert($this);
+
+        return $this;
+    }
+
+    /**
+     * Remove application
+     *
+     * @param \OC\PlatformBundle\Entity\Application $application
+     */
+    public function removeApplication(\OC\PlatformBundle\Entity\Application $application)
+    {
+        $this->applications->removeElement($application);
+
+        //Si l'application était facultative, (nullable=true), ce qui n'est pas le cas ici :
+        //on aurait :
+        // $applications->setAdvert(null);
+    }
+
+    /**
+     * Get applications
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getApplications()
+    {
+        return $this->applications;
     }
 }
