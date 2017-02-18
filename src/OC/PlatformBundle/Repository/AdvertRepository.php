@@ -62,4 +62,21 @@ class AdvertRepository extends \Doctrine\ORM\EntityRepository
         //cette année
         ;
     }
+    public function myFind()
+    {
+        $qb = $this->createQueryBuilder('a');
+        $qb
+            ->where('a.author = :author')
+            ->setParameter('author', 'Marine')
+            ;
+        //on applique notre condition sur le QueryBuilder
+        $this->whereCurrentYear($qb);
+        //on peut ajouter ce qu'on veut après
+        $qb->orderBy('a.date', 'DESC');
+
+        return $qb
+            ->getQuery()
+            ->getResult()
+            ;
+    }
 }
